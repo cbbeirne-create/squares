@@ -7,7 +7,6 @@ import { createClient } from '@/lib/supabase/client'
 
 export default function ResetPasswordPage() {
   const router   = useRouter()
-  const supabase = createClient()
 
   const [password,  setPassword]  = useState('')
   const [confirm,   setConfirm]   = useState('')
@@ -19,10 +18,12 @@ export default function ResetPasswordPage() {
 
   // Supabase exchanges the token from the URL hash on mount
   useEffect(() => {
-    supabase.auth.onAuthStateChange((event) => {
+    const supabase = createClient()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') setSessionOk(true)
     })
-  }, [supabase])
+    return () => subscription.unsubscribe()
+  }, [])
 
   function validate(): string | null {
     if (password.length < 8)          return 'Password must be at least 8 characters'
@@ -40,7 +41,7 @@ export default function ResetPasswordPage() {
     setLoading(true)
     setError(null)
 
-    const { error } = await supabase.auth.updateUser({ password })
+    const { error } = await createClient().auth.updateUser({ password })
 
     if (error) {
       setError(error.message)
