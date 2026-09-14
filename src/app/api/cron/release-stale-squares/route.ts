@@ -28,7 +28,8 @@ export async function GET(req: NextRequest) {
 
   for (const square of stale ?? []) {
     try {
-      const accountId = square.clients?.stripe_account_id
+      const relatedClient = Array.isArray(square.clients) ? square.clients[0] : square.clients
+      const accountId = relatedClient?.stripe_account_id
       const intentId = square.stripe_payment_intent_id
 
       if (intentId && accountId) {
