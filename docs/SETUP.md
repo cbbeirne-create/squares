@@ -27,6 +27,8 @@ npm install
    ```
    supabase/migrations/001_initial_schema.sql
    supabase/migrations/002_security_and_reliability_fixes.sql
+   supabase/migrations/003_payment_privacy_hardening.sql
+   supabase/migrations/004_notification_digests.sql
    ```
    Migration 002 is not optional — it removes an RLS policy that otherwise
    allows unauthenticated square insertion, bypassing payment entirely.

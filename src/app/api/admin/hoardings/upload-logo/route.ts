@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { imageExtension, validateImageFile } from '@/lib/uploads'
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,15 +24,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing file or hoardingId' }, { status: 400 })
     }
 
-    // Validate file type
-    const allowed = ['image/png', 'image/jpeg', 'image/svg+xml', 'image/webp']
-    if (!allowed.includes(file.type)) {
-      return NextResponse.json({ error: 'Invalid file type. Use PNG, JPG, SVG or WebP.' }, { status: 400 })
-    }
-
-    // Validate file size (2MB max)
-    if (file.size > 2 * 1024 * 1024) {
-      return NextResponse.json({ error: 'File too large. Maximum size is 2MB.' }, { status: 400 })
+    const validationError = await validateImageFile(file, 2 * 1024 * 1024)
+    if (validationError) {
+      return NextResponse.json({ error: validationError }, { status: 400 })
     }
 
     // Verify the hoarding belongs to this admin's client
@@ -48,7 +43,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Upload to Supabase Storage
-    const ext      = file.name.split('.').pop() ?? 'png'
+    const ext      = imageExtension(file)
     const path     = `${hoarding.client_id}/${hoardingId}.${ext}`
     const buffer   = await file.arrayBuffer()
 

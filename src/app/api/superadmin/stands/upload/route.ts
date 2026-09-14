@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { imageExtension, validateImageFile } from '@/lib/uploads'
 
 const VALID_POSITIONS = ['top', 'bottom', 'left', 'right'] as const
 type Position = typeof VALID_POSITIONS[number]
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
-const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml']
 
 export async function POST(req: NextRequest) {
   try {
@@ -36,12 +36,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid position. Must be top, bottom, left or right.' }, { status: 400 })
     }
 
-    if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json({ error: 'File too large. Maximum size is 5MB.' }, { status: 400 })
-    }
-
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      return NextResponse.json({ error: 'Invalid file type. Use PNG, JPG, WebP or SVG.' }, { status: 400 })
+    const validationError = await validateImageFile(file, 5 * 1024 * 1024)
+    if (validationError) {
+      return NextResponse.json({ error: validationError }, { status: 400 })
     }
 
     const service = createServiceClient()
@@ -58,10 +55,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Upload to Supabase Storage
-    const ext      = file.type === 'image/svg+xml' ? 'svg'
-                   : file.type === 'image/webp'    ? 'webp'
-                   : file.type === 'image/png'     ? 'png'
-                   : 'jpg'
+    const ext      = imageExtension(file)
     const path     = `${clientSlug}/${position}.${ext}`
     const buffer   = await file.arrayBuffer()
 
