@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/release-stale-squares",
       "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/cron/send-digests",
+      "schedule": "0 * * * *"
     }
   ]
 }

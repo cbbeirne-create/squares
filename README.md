@@ -53,6 +53,8 @@ Run both Supabase migrations, in order, before starting the app:
 ```
 supabase/migrations/001_initial_schema.sql
 supabase/migrations/002_security_and_reliability_fixes.sql
+supabase/migrations/003_payment_privacy_hardening.sql
+supabase/migrations/004_notification_digests.sql
 ```
 
 Migration 002 is not optional — it removes a Row Level Security policy that otherwise allows square insertion without payment.
@@ -79,3 +81,19 @@ Migration 002 is not optional — it removes a Row Level Security policy that ot
 - `npm audit` flags a handful of high-severity findings in dev-only tooling (eslint/glob dependency chain) — not present in runtime code, safe to defer
 
 See the architecture review history in project chat for the full reasoning behind the current data model and security fixes.
+
+## Security and release checks
+
+Before deploying, run:
+
+```bash
+npm run test
+npm run check
+```
+
+Public board data is served through shaped server responses rather than direct anonymous
+table access. Payment confirmation, moderation and publication are separate states, and
+only a verified Stripe webhook can mark a reservation as paid.
+
+See [docs/TEST_PLAN.md](docs/TEST_PLAN.md) for the required Stripe, concurrency, mobile
+and accessibility release checks.

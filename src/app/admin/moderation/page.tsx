@@ -9,7 +9,9 @@ async function getPendingSquares(clientId: string) {
     .select('*')
     .eq('client_id', clientId)
     .eq('status', 'pending')
-    .order('purchased_at', { ascending: true })
+    .eq('payment_status', 'paid')
+    .is('rejected_at', null)
+    .order('payment_confirmed_at', { ascending: true })
   return data ?? []
 }
 

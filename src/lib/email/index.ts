@@ -101,6 +101,41 @@ function buildEmail(payload: EmailPayload): { subject: string; html: string } {
   }
 }
 
+export async function sendDailyDigestEmail(input: {
+  to: string
+  clubName: string
+  boardUrl: string
+  purchases: Array<{ fan_name: string | null; grid_x: number; grid_y: number }>
+}): Promise<boolean> {
+  try {
+    const club = escapeHtml(input.clubName)
+    const rows = input.purchases.map(purchase => `
+      <tr>
+        <td>${escapeHtml(purchase.fan_name ?? 'Supporter')}</td>
+        <td>R${purchase.grid_y + 1}–C${purchase.grid_x + 1}</td>
+      </tr>
+    `).join('')
+
+    const html = emailWrapper(club, `
+      <h2>Daily purchase summary</h2>
+      <p>${input.purchases.length} confirmed ${input.purchases.length === 1 ? 'purchase is' : 'purchases are'} awaiting review.</p>
+      ${rows ? `<table><tr><td><strong>Supporter</strong></td><td><strong>Square</strong></td></tr>${rows}</table>` : '<p>There were no new confirmed purchases.</p>'}
+      <p><a href="${safeUrl(input.boardUrl)}" class="button">Open moderation queue</a></p>
+    `)
+
+    const result = await resend.emails.send({
+      from: `${input.clubName} <noreply@stadiumsquares.io>`,
+      to: input.to,
+      subject: `${input.clubName} — daily Stadium Squares summary`,
+      html,
+    })
+    if (result.error) throw new Error(result.error.message)
+    return true
+  } catch (err) {
+    console.error('Daily digest email failed:', err)
+    return false
+  }
+}
 function emailWrapper(clubName: string, content: string): string {
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">

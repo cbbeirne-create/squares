@@ -119,8 +119,8 @@ export default function NotificationsClient({ clientId, initial }: Props) {
               <div>
                 <p className="text-sm font-medium text-foreground">Daily digest</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Receive a single daily summary of all purchases instead of individual alerts.
-                  Useful during busy campaign periods.
+                  Receive a daily summary of confirmed purchases. Turn off the individual purchase
+                  alert above if you want to receive the digest only.
                 </p>
               </div>
             </div>

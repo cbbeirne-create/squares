@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
     .from('clients')
     .select('club_name, primary_color, secondary_color, accent_color, slug')
     .eq('slug', slug)
+    .in('status', ['active', 'sold_out'])
     .single()
 
   const clubName     = client?.club_name     ?? 'Stadium Squares'

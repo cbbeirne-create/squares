@@ -15,6 +15,7 @@ export async function GET(
       .from('clients')
       .select('club_name, promo_headline, primary_color, secondary_color, accent_color')
       .eq('slug', params.slug)
+      .in('status', ['active', 'sold_out'])
       .single(),
     supabase
       .from('campaign_analytics')
