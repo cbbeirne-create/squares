@@ -1,7 +1,11 @@
 import { Resend } from 'resend'
 import type { EmailPayload } from '@/types'
 
-const resend = new Resend(process.env.RESEND_API_KEY!)
+function createEmailClient(): Resend {
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) throw new Error('RESEND_API_KEY is not configured')
+  return new Resend(apiKey)
+}
 
 function escapeHtml(value: unknown): string {
   return String(value ?? '')
@@ -25,7 +29,7 @@ function safeUrl(value?: string): string {
 export async function sendEmail(payload: EmailPayload): Promise<boolean> {
   try {
     const { subject, html } = buildEmail(payload)
-    const result = await resend.emails.send({
+    const result = await createEmailClient().emails.send({
       from: `${payload.clubName} <noreply@stadiumsquares.io>`,
       to: payload.to,
       subject,
@@ -123,7 +127,7 @@ export async function sendDailyDigestEmail(input: {
       <p><a href="${safeUrl(input.boardUrl)}" class="button">Open moderation queue</a></p>
     `)
 
-    const result = await resend.emails.send({
+    const result = await createEmailClient().emails.send({
       from: `${input.clubName} <noreply@stadiumsquares.io>`,
       to: input.to,
       subject: `${input.clubName} — daily Stadium Squares summary`,
